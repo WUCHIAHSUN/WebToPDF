@@ -1,28 +1,23 @@
 package com.example.webtopdf
 
-import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.http.SslError
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Message
-import android.provider.Settings
 import android.view.View
-import android.webkit.SslErrorHandler
-import android.webkit.WebChromeClient
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import android.widget.Button
 import android.widget.RelativeLayout
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.LinearLayoutCompat
-import androidx.core.app.ActivityCompat
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.UnsupportedEncodingException
+import java.net.URLDecoder
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -46,21 +41,23 @@ class MainActivity : AppCompatActivity() {
         val button: Button = findViewById(R.id.button)
         val btWrite: Button = findViewById(R.id.bt_write)
         button.setOnClickListener(View.OnClickListener {
-            if (Build.VERSION.SDK_INT >= 30 && !Environment.isExternalStorageManager()){
-                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                startActivity(intent)
-            }else {
-                val path = Environment.getExternalStorageDirectory().path + File.separator + "test123.pdf"
-                h52PdfTask.webViewToPdf(webView, path)
+//            if (Build.VERSION.SDK_INT >= 30 && !Environment.isExternalStorageManager()){
+//                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+//                startActivity(intent)
+//            }else {
+                h52PdfTask.webViewToPdf(webView, this)
                 signatureLayout.visibility = View.VISIBLE
                 webView?.visibility = View.GONE
-            }
+            //轉Uri
+//            val uri = FileProvider.getUriForFile(applicationContext, BuildConfig.APPLICATION_ID + ".provider", h52PdfTask.pdfFile)
+//            }
         })
         btWrite.setOnClickListener(View.OnClickListener {
             PdfSetting = PdfSetting(h52PdfTask.pdfFile, signatureView.getBitmap())
             PdfSetting?.saveBitmapPdf(PdfSetting?.PdfToBitmap(this))
             signatureLayout.visibility = View.GONE
             webView?.visibility = View.VISIBLE
+
         })
         openWeb("https://www.tentenmall.tv/")
     }

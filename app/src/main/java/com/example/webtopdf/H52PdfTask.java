@@ -3,6 +3,7 @@ package com.example.webtopdf;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.print.PageRange;
 import android.print.PrintAttributes;
@@ -22,15 +23,16 @@ public class H52PdfTask {
     private PrintDocumentAdapter printAdapter;
     private File pdfFile;
 
-    public void webViewToPdf (WebView webView, String pdfFilePath) {
+    public void webViewToPdf (WebView webView, Context context) {
         try {
-            pdfFile = new File(pdfFilePath);
+//            String path = Environment.getExternalStorageDirectory().getPath() + File.separator + "電子簽單.pdf";
+            pdfFile = new File(context.getFilesDir(), "電子簽單.pdf");
             if (pdfFile.exists()) {
                 pdfFile.delete();
             }
             pdfFile.createNewFile();
             descriptor = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_WRITE);
-            // 设置打印参数
+            // 打印參數
             PrintAttributes.MediaSize isoA4 = PrintAttributes.MediaSize.ISO_A4;
             PrintAttributes attributes = new PrintAttributes.Builder()
                     .setMediaSize(isoA4)
@@ -38,22 +40,19 @@ public class H52PdfTask {
                     .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
                     .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                     .build();
-            // 计算webview打印需要的页数
+            // 計算頁數
             int numberOfPages = ((webView.getContentHeight() * 240 / (isoA4.getHeightMils())) );
             ranges = new PageRange[]{new PageRange(0, numberOfPages)};
-            // 创建pdf文件缓存目录
-            // 获取需要打印的webview适配器
+
             printAdapter = webView.createPrintDocumentAdapter();
-            // 开始打印
+            // 開始打印
             printAdapter.onStart();
             printAdapter.onLayout(attributes, attributes, new CancellationSignal(),
                     getLayoutResultCallback((proxy, method, args) -> {
                         if (method.getName().equals("onLayoutFinished")) {
                             System.out.println("H52PdfTask onLayoutFinished thread=" + Thread.currentThread().getName());
-                            // 监听到内部调用了onLayoutFinished()方法,即打印成功
                             onLayoutSuccess();
                         } else {
-                            // 监听到打印失败或者取消了打印
                             System.out.println("H52PdfTask onLayout fail");
                         }
                         return null;
